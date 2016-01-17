@@ -21,6 +21,7 @@ class NearChat extends PluginBase implements Listener {
 	public function onChat(PlayerChatEvent $event) {
 		$player = $event->getPlayer ();
 		$message = $event->getFormat ();
+		$this->sendChat($player, $message, $event);
 	}
 	/**
 	 *
