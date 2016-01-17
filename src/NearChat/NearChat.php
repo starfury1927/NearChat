@@ -33,8 +33,8 @@ class NearChat extends PluginBase implements Listener {
 			return true;
 		else {
 			$event->setCancelled();
+			$this->getLogger()->info($message);
 			foreach ( $this->getServer ()->getOnlinePlayers () as $target ) {
-				$this->getLogger()->info($message);
 				if ($player->distance ( $target->getPosition () ) < $this->config ["chat-distance"] && $player->getLevel ()->getName () == $target->getLevel ()->getName ()) {
 					$target->sendMessage($message);
 				}
