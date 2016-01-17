@@ -21,7 +21,7 @@ class NearChat extends PluginBase implements Listener {
 	public function onChat(PlayerChatEvent $event) {
 		$player = $event->getPlayer ();
 		$message = $event->getFormat ();
-		$this->sendChat($player, $message, $event);
+		$this->sendChat ( $player, $message, $event );
 	}
 	/**
 	 *
@@ -30,14 +30,12 @@ class NearChat extends PluginBase implements Listener {
 	 * @param PlayerChatEvent $event        	
 	 */
 	public function sendChat(Player $player, $message, $event) {
-		if ($player->isOp ())
-			return true;
-		else {
-			$event->setCancelled();
-			$this->getLogger()->info($message);
+		if (! $player->isOp ()) {
+			$event->setCancelled ();
+			$this->getLogger ()->info ( $message );
 			foreach ( $this->getServer ()->getOnlinePlayers () as $target ) {
 				if ($player->distance ( $target->getPosition () ) < $this->config ["chat-distance"] && $player->getLevel ()->getName () == $target->getLevel ()->getName ()) {
-					$target->sendMessage($message);
+					$target->sendMessage ( $message );
 				}
 			}
 		}
