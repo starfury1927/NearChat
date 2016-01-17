@@ -1,0 +1,5 @@
+name: NearChat
+main: NearChat\NearChat
+version: "1.0"
+author: maru
+api: [1.12.0, 1.13.0, 2.0.0]
