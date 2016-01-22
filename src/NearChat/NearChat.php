@@ -12,32 +12,50 @@ use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\utils\TextFormat;
 use onebone\economyapi\EconomyAPI;
+use pocketmine\event\player\PlayerCommandPreprocessEvent;
 
 class NearChat extends PluginBase implements Listener {
-	private $config;
+	private $config, $mute = false;
 	/**
-	 * 
+	 *
 	 * @var EconomyAPI
 	 */
 	private $economy;
 	public function onEnable() {
 		$this->LoadConfig ();
-		$this->economy = $this->getServer()->getPluginManager()->getPlugin("EconomyAPI");
+		$this->economy = $this->getServer ()->getPluginManager ()->getPlugin ( "EconomyAPI" );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	public function LoadConfig() {
 		$this->saveResource ( "config.yml" );
 		$this->config = (new Config ( $this->getDataFolder () . "config.yml", Config::YAML ))->getAll ();
-		if (!isset($this->config["speaker-cost"])) {
-			$this->saveResource("config.yml", true);
+		if (! isset ( $this->config ["speaker-cost"] )) {
+			$this->saveResource ( "config.yml", true );
 			$this->config = (new Config ( $this->getDataFolder () . "config.yml", Config::YAML ))->getAll ();
 		}
 	}
-	public function onChat(PlayerChatEvent $event) {
-		if(! $event->getPlayer()->isOp()) {
-			$event->setCancelled();
+	public function onPlayerCommand(PlayerCommandPreprocessEvent $event) {
+		$player = $event->getPlayer ();
+		$message = $event->getMessage ();
+		if ($message {1} == '/') {
+			$message = substr ( $message, 1 );
+			$args = explode ( " ", $message );
+			if ($args [0] == 'me' && ! $player->isOp ()) {
+				$player->sendMessage ( TextFormat::RED . "당신은 이 명령어를 사용할 권한이 없습니다." );
+				$event->setCancelled ();
+			}
 		}
-		$this->getServer()->getScheduler()->scheduleDelayedTask(new GetformatTask($this, $event), 5);
+	}
+	public function onChat(PlayerChatEvent $event) {
+		$player = $event->getPlayer ();
+		if (! $player->isOp ()) {
+			$event->setCancelled ();
+		}
+		if (($this->isMute () && ! $player->isOp ()) || ! $player->hasPermission ( "nearchat.chat" )) {
+			$player->sendMessage ( TextFormat::RED . "현재 채팅을 할 수 없습니다." );
+			return true;
+		}
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new GetformatTask ( $this, $event ), 5 );
 	}
 	/**
 	 *
@@ -49,30 +67,56 @@ class NearChat extends PluginBase implements Listener {
 		if (! $player->isOp ()) {
 			$this->getLogger ()->info ( $message );
 			foreach ( $this->getServer ()->getOnlinePlayers () as $target ) {
-				if (($player->distance  ($target->getPosition () ) < $this->config ["chat-distance"] && $player->getLevel ()->getName () == $target->getLevel ()->getName ()) || $target->isOp()) {
+				if (($player->distance ( $target->getPosition () ) < $this->config ["chat-distance"] && $player->getLevel ()->getName () == $target->getLevel ()->getName ()) || $target->isOp ()) {
 					$target->sendMessage ( $message );
 				}
 			}
 		}
 	}
 	public function onCommand(CommandSender $sender, Command $command, $label, Array $args) {
-		if (strtolower($command) == '확성기') {
-			if(!isset($args[0])) {
-				$sender->sendMessage("도움말: /확성기 <메세지>");
+		if (strtolower ( $command ) == '확성기') {
+			if (! isset ( $args [0] )) {
+				return false;
+			}
+			if ($this->economy == null) {
+				$sender->sendMessage ( "EconomyAPI 플러그인이 없어서 이 명령어를 사용할 수 없습니다." );
 				return true;
 			}
-			if($this->economy == null) {
-				$sender->sendMessage("EconomyAPI 플러그인이 없어서 이 명령어를 사용할 수 없습니다.");
+			if ($this->isMute () && ! $sender->isOp ()) {
+				$sender->sendMessage ( TextFormat::RED . "현재 채팅을 할 수 없습니다." );
 				return true;
 			}
-			if($this->economy->reduceMoney($sender, $this->config["speaker-cost"]) == EconomyAPI::RET_CANCELLED) {
-				$sender->sendMessage(TextFormat::RED."확성기를 사용할 돈이 부족합니다. (비용: {$this->config["speaker-cost"]}");
+			if ($this->economy->reduceMoney ( $sender, $this->config ["speaker-cost"] ) != EconomyAPI::RET_SUCCESS) {
+				$sender->sendMessage ( TextFormat::RED . "확성기를 사용할 돈이 부족합니다. (비용: {$this->config["speaker-cost"]})" );
 				return true;
 			}
-			$message = implode(" ", $args);
-			$this->getServer()->broadcastMessage(TextFormat::AQUA."[확성기] ".$sender->getName()." > ".$message);
-			$sender->sendMessage("{$this->config["speaker-cost"]}원을 내고 확성기를 사용하였습니다.");
+			$message = implode ( " ", $args );
+			$this->getServer ()->broadcastMessage ( TextFormat::AQUA . "[확성기] " . $sender->getName () . " > " . $message );
+			$sender->sendMessage ( "{$this->config["speaker-cost"]}원을 내고 확성기를 사용하였습니다." );
+		} else if (strtolower ( $command ) == 'mute') {
+			if ($this->isMute ()) {
+				$this->setMute ( false );
+				$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . "관리자가 채팅을 허용상태로 변경했습니다." );
+			} else {
+				$this->setMute ( true );
+				$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . "관리자가 채팅을 비허용상태로 변경했습니다." );
+			}
 		}
+		return true;
+	}
+	/**
+	 *
+	 * @return boolean
+	 */
+	public function isMute() {
+		return $this->mute;
+	}
+	/**
+	 *
+	 * @param boolean $bool        	
+	 */
+	public function setMute($bool = true) {
+		$this->mute = $bool;
 	}
 }
 ?>

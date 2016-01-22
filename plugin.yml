@@ -1,9 +1,28 @@
 name: NearChat
 main: NearChat\NearChat
-version: "2.0"
+version: "2.1"
 author: maru
 api: [1.12.0, 1.13.0, 2.0.0]
 
 commands:
  확성기:
-  default: true
+  permission: nearchat.cmd.speaker
+  description: <message>
+  usage: /확성기 <메세지>
+ mute:
+  permission: nearchat.cmd.mute
+  description: mute all players
+  usage: /mute
+  
+permissions:
+ nearchat.*:
+  default: OP
+  children:
+   nearchat.cmd.*:
+    default: OP
+    children:
+     nearchat.cmd.speaker:
+      default: true
+     nearchat.cmd.mute:
+   nearchat.chat:
+    default: true
