@@ -48,30 +48,17 @@ class NearChat extends PluginBase implements Listener {
 	}
 	public function onChat(PlayerChatEvent $event) {
 		$player = $event->getPlayer ();
-		if (! $player->isOp ()) {
-			$event->setCancelled ();
-		}
-		if (($this->isMute () && ! $player->isOp ()) || ! $player->hasPermission ( "nearchat.chat" )) {
-			$player->sendMessage ( TextFormat::RED . "현재 채팅을 할 수 없습니다." );
-			return true;
-		}
-		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new GetformatTask ( $this, $event ), 5 );
-	}
-	/**
-	 *
-	 * @param Player $player        	
-	 * @param string $message        	
-	 * @param PlayerChatEvent $event        	
-	 */
-	public function sendChat(Player $player, $message) {
-		if (! $player->isOp ()) {
-			$this->getLogger ()->info ( $message );
+		$recipients = [ ];
+		if ($player->isOp ()) {
+			$recipients = $this->getServer ()->getOnlinePlayers ();
+		} else {
 			foreach ( $this->getServer ()->getOnlinePlayers () as $target ) {
-				if (($player->distance ( $target->getPosition () ) < $this->config ["chat-distance"] && $player->getLevel ()->getName () == $target->getLevel ()->getName ()) || $target->isOp ()) {
-					$target->sendMessage ( $message );
+				if ($player->distance ( $target->getPosition () ) <= $this->config ['chat-distance'] or $target->isOp ()) {
+					array_push($recipients, $target);
 				}
 			}
 		}
+		$event->setRecipients($recipients);
 	}
 	public function onCommand(CommandSender $sender, Command $command, $label, Array $args) {
 		if (strtolower ( $command ) == '확성기') {
