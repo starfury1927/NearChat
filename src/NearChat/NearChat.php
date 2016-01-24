@@ -5,9 +5,7 @@ namespace NearChat;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerChatEvent;
-use pocketmine\Player;
 use pocketmine\utils\Config;
-use NearChat\task\GetformatTask;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\utils\TextFormat;
@@ -53,12 +51,12 @@ class NearChat extends PluginBase implements Listener {
 			$recipients = $this->getServer ()->getOnlinePlayers ();
 		} else {
 			foreach ( $this->getServer ()->getOnlinePlayers () as $target ) {
-				if ($player->distance ( $target->getPosition () ) <= $this->config ['chat-distance'] or $target->isOp ()) {
-					array_push($recipients, $target);
+				if ($player->distance ( ($target->getPosition ()) <= $this->config ['chat-distance'] and $player->getLevel ()->getName () == $target->getLevel ()->getName () ) or $target->isOp ()) {
+					array_push ( $recipients, $target );
 				}
 			}
 		}
-		$event->setRecipients($recipients);
+		$event->setRecipients ( $recipients );
 	}
 	public function onCommand(CommandSender $sender, Command $command, $label, Array $args) {
 		if (strtolower ( $command ) == '확성기') {
