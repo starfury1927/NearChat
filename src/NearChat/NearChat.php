@@ -11,6 +11,7 @@ use pocketmine\command\Command;
 use pocketmine\utils\TextFormat;
 use onebone\economyapi\EconomyAPI;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
+use pocketmine\command\ConsoleCommandSender;
 
 class NearChat extends PluginBase implements Listener {
 	private $config, $mute = false;
@@ -51,11 +52,12 @@ class NearChat extends PluginBase implements Listener {
 			$recipients = $this->getServer ()->getOnlinePlayers ();
 		} else {
 			foreach ( $this->getServer ()->getOnlinePlayers () as $target ) {
-				if ($player->distance ( ($target->getPosition ()) <= $this->config ['chat-distance'] and $player->getLevel ()->getName () == $target->getLevel ()->getName () ) or $target->isOp ()) {
+				if (($player->distance ( $target->getPosition ()) <= $this->config ['chat-distance'] and $player->getLevel ()->getName () == $target->getLevel ()->getName () ) or $target->isOp ()) {
 					array_push ( $recipients, $target );
 				}
 			}
 		}
+		array_push($recipients, new ConsoleCommandSender());
 		$event->setRecipients ( $recipients );
 	}
 	public function onCommand(CommandSender $sender, Command $command, $label, Array $args) {
