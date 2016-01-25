@@ -36,28 +36,29 @@ class NearChat extends PluginBase implements Listener {
 	public function onPlayerCommand(PlayerCommandPreprocessEvent $event) {
 		$player = $event->getPlayer ();
 		$message = $event->getMessage ();
-		if ($message {1} == '/') {
-			$message = substr ( $message, 1 );
-			$args = explode ( " ", $message );
-			if ($args [0] == 'me' && ! $player->isOp ()) {
-				$player->sendMessage ( TextFormat::RED . "당신은 이 명령어를 사용할 권한이 없습니다." );
-				$event->setCancelled ();
-			}
+		$args = explode ( " ", $message );
+		if ($args [0] == '/me' and ! $player->isOp ()) {
+			$player->sendMessage ( TextFormat::RED . "당신은 이 명령어를 사용할 권한이 없습니다." );
+			$event->setCancelled ();
 		}
 	}
 	public function onChat(PlayerChatEvent $event) {
 		$player = $event->getPlayer ();
+		if ($this->isMute () and ! $player->isOp ()) {
+			$event->setCancelled ();
+			$player->sendMessage ( TextFormat::RED . "현재 채팅을 할 수 없습니다." );
+		}
 		$recipients = [ ];
 		if ($player->isOp ()) {
 			$recipients = $this->getServer ()->getOnlinePlayers ();
 		} else {
 			foreach ( $this->getServer ()->getOnlinePlayers () as $target ) {
-				if (($player->distance ( $target->getPosition ()) <= $this->config ['chat-distance'] and $player->getLevel ()->getName () == $target->getLevel ()->getName () ) or $target->isOp ()) {
+				if (($player->distance ( $target->getPosition () ) <= $this->config ['chat-distance'] and $player->getLevel ()->getName () == $target->getLevel ()->getName ()) or $target->isOp ()) {
 					array_push ( $recipients, $target );
 				}
 			}
 		}
-		array_push($recipients, new ConsoleCommandSender());
+		array_push ( $recipients, new ConsoleCommandSender () );
 		$event->setRecipients ( $recipients );
 	}
 	public function onCommand(CommandSender $sender, Command $command, $label, Array $args) {
