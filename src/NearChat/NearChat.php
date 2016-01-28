@@ -37,7 +37,7 @@ class NearChat extends PluginBase implements Listener {
 		$player = $event->getPlayer ();
 		$message = $event->getMessage ();
 		$args = explode ( " ", $message );
-		if ($args [0] == '/me' and ! $player->isOp ()) {
+		if (strtolower($args [0]) == '/me' and ! $player->isOp ()) {
 			$player->sendMessage ( TextFormat::RED . "당신은 이 명령어를 사용할 권한이 없습니다." );
 			$event->setCancelled ();
 		}
