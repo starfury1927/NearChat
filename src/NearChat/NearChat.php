@@ -48,17 +48,16 @@ class NearChat extends PluginBase implements Listener {
 			$event->setCancelled ();
 			$player->sendMessage ( TextFormat::RED . "현재 채팅을 할 수 없습니다." );
 		}
-		$recipients = [ ];
+		$recipients = [ new ConsoleCommandSender () ];
 		if ($player->isOp ()) {
 			$recipients = $this->getServer ()->getOnlinePlayers ();
 		} else {
 			foreach ( $this->getServer ()->getOnlinePlayers () as $target ) {
-				if (($player->distance ( $target->getPosition () ) <= $this->config ['chat-distance'] and $player->getLevel ()->getName () == $target->getLevel ()->getName ()) or $target->isOp ()) {
+				if (($player->distance ( $target ) <= $this->config ['chat-distance'] and $player->getLevel () === $target->getLevel ()) or $target->isOp ()) {
 					array_push ( $recipients, $target );
 				}
 			}
 		}
-		array_push ( $recipients, new ConsoleCommandSender () );
 		$event->setRecipients ( $recipients );
 	}
 	public function onCommand(CommandSender $sender, Command $command, $label, Array $args) {
