@@ -14,7 +14,7 @@ use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\command\ConsoleCommandSender;
 
 class NearChat extends PluginBase implements Listener {
-	private $config, $mute = false;
+	private $config, $pluginDB;
 	/**
 	 *
 	 * @var EconomyAPI
@@ -22,8 +22,12 @@ class NearChat extends PluginBase implements Listener {
 	private $economy;
 	public function onEnable() {
 		$this->LoadConfig ();
+		$this->loadDB();
 		$this->economy = $this->getServer ()->getPluginManager ()->getPlugin ( "EconomyAPI" );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
+	}
+	public function onDisable() {
+		$this->save();
 	}
 	public function LoadConfig() {
 		$this->saveResource ( "config.yml" );
@@ -32,6 +36,14 @@ class NearChat extends PluginBase implements Listener {
 			$this->saveResource ( "config.yml", true );
 			$this->config = (new Config ( $this->getDataFolder () . "config.yml", Config::YAML ))->getAll ();
 		}
+	}
+	public function loadDB() {
+		$this->pluginDB = (new Config($this->getDataFolder()."pluginDB.json", Config::JSON, ["mute" => false]))->getAll();
+	}
+	public function save() {
+		$pluginDB = new Config($this->getDataFolder()."pluginDB.json", Config::JSON);
+		$pluginDB->setAll($this->pluginDB);
+		$pluginDB->save();
 	}
 	public function onPlayerCommand(PlayerCommandPreprocessEvent $event) {
 		$player = $event->getPlayer ();
@@ -96,14 +108,14 @@ class NearChat extends PluginBase implements Listener {
 	 * @return boolean
 	 */
 	public function isMute() {
-		return $this->mute;
+		return $this->pluginDB["mute"];
 	}
 	/**
 	 *
 	 * @param boolean $bool        	
 	 */
 	public function setMute($bool = true) {
-		$this->mute = $bool;
+		$this->pluginDB["mute"] = $bool;
 	}
 }
 ?>
