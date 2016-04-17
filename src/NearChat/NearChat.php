@@ -63,6 +63,7 @@ class NearChat extends PluginBase implements Listener {
 		$recipients = [ new ConsoleCommandSender () ];
 		if ($player->isOp ()) {
 			$recipients = $this->getServer ()->getOnlinePlayers ();
+			array_push( $recipients, new ConsoleCommandSender() );
 		} else {
 			foreach ( $this->getServer ()->getOnlinePlayers () as $target ) {
 				if (($player->distance ( $target ) <= $this->config ['chat-distance'] and $player->getLevel () === $target->getLevel ()) or $target->isOp ()) {
